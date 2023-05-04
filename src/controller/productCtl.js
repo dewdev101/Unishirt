@@ -339,3 +339,21 @@ export const filterProductByCategoryByPriceBetweenBytime = async (req, res) => {
     res.status(500).json({ status: "Fail to get request", err: err });
   }
 };
+
+export const createManyProducts = async (req, res) => {
+  try {
+    const body = req?.body;
+    if (body.length > 0) {
+      const databaseInfo = await Product.insertMany(body);
+      res.status(200).json({
+        status: "Create many products completely",
+        itemsCount: databaseInfo.length,
+        databaseInfo: databaseInfo,
+      });
+    } else {
+      res.status(501).json({ status: "Please add product" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Fail to get request", err: err });
+  }
+};

@@ -22,6 +22,7 @@ import * as useClientCtl from "./controller/clientCtl.js";
 
 //Product routes
 app.post(config.server.baseUrl + "/createProduct", useProductCtl.createProduct);
+app.post(config.server.baseUrl + "/createManyProduct", useProductCtl.createManyProducts);
 app.post(config.server.baseUrl + "/findProduct", useProductCtl.findProduct);
 app.post(config.server.baseUrl + "/fetchProduct", useProductCtl.fetchProduct);
 app.post(config.server.baseUrl + "/updateProduct", useProductCtl.updateProduct);
