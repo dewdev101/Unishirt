@@ -36,7 +36,7 @@ app.post(config.server.baseUrl + "/findOneUpdate",useProductCtl.findOneUpdateNam
 app.post(config.server.baseUrl + "/findOneUpdatePrice",useProductCtl.findOneUpdatePrice);
 app.post(config.server.baseUrl + "/findOneUpdateAddCategory",useProductCtl.findOneUpdateAddCategory);
 app.post(config.server.baseUrl + "/insertNewProduct",useProductCtl.insertNewProduct);
-app.post(config.server.baseUrl + "/filterProductPriceBetween",useProductCtl.filterProductByCategoryByPriceBetweenBytime);
+app.post(config.server.baseUrl + "/filterProductByCategoryByPriceBetweenBytime",useProductCtl.filterProductByCategoryByPriceBetweenBytime);
 
 
 
