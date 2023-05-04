@@ -1,0 +1,27 @@
+{
+  "name": "unishirt",
+  "version": "1.0.0",
+  "description": "Ecommerge-shirt",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThanaponBunchot/Unishirt.git"
+  },
+  "keywords": [
+    "unishirt"
+  ],
+  "author": "Dew dev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ThanaponBunchot/Unishirt/issues"
+  },
+  "homepage": "https://github.com/ThanaponBunchot/Unishirt#readme",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.1.0"
+  }
+}
