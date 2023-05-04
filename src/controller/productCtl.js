@@ -140,39 +140,47 @@ export const deleteFieldProduct = async (req, res) => {
   }
 };
 
-export const addCategoryProduct = async (req, res) => {
-  const condition = { _id: req.body.productId };
-  const update = { $push: { category: req.body.category } };
+export const addCategoryProductField = async (req, res) => {
+  try {
+    const condition = { _id: req.body.productId };
+    const update = { $push: { category: req.body.category } };
+    const options = { upsert: true };
 
-  const productInfo = await Product.updateOne(condition, update);
-  if (productInfo) {
-    const r = {
-      status: "success",
-      productId: productInfo,
-    };
-    return res.status(200).json(r);
-  } else {
-    return res.status(500).json({ status: "Fail to add category" });
+    const productInfo = await Product.updateOne(condition, update, options);
+    if (productInfo) {
+      const r = {
+        status: "success",
+        productId: productInfo,
+      };
+      return res.status(200).json(r);
+    } else {
+      return res.status(500).json({ status: "Fail to add category" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Fail to get request", err: err });
   }
 };
 
 export const filterProductPrice = async (req, res) => {
   try {
-    const condition = { name: name };
     const name = req.body.name;
     const field = req.body.field;
     const greaterThan = req.body.greaterThan;
+
+    const condition = { name: name };
+
     // console.log("name", name);
     const productInfo = await Product.find(condition)
       .where(field)
       .gt(greaterThan);
+
     if (productInfo) {
       return res.status(200).json(productInfo);
     } else {
       return res.status(500).json({ status: "Fail to filter product" });
     }
   } catch (err) {
-    res.status(500).json({ message: err });
+    res.status(500).json({ status: "Fail to get request", message: err });
   }
 };
 
@@ -199,7 +207,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-export const findOneUpdate = async (req, res) => {
+export const findOneUpdateName = async (req, res) => {
   const condition = { _id: req.body.productId };
   const update = { name: req.body.name };
   const options = { new: true };
@@ -237,9 +245,9 @@ export const findOneUpdatePrice = async (req, res) => {
   }
 };
 
-export const findOneUpdateCategory = async (req, res) => {
+export const findOneUpdateAddCategory = async (req, res) => {
   const condition = { _id: req.body.productId };
-  const update = { category: req.body.category };
+  const update = { $push: { category: req.body.category } };
   const options = { lean: "update success", returnDocument: "after" };
 
   const productInfo = await Product.findByIdAndUpdate(
@@ -273,5 +281,61 @@ export const insertNewProduct = async (req, res) => {
       .json({ status: "Insert successfully", productInfo: productInfo });
   } else {
     return res.status(500).json({ message: "Insert failed" });
+  }
+};
+
+export const filterProductByCategoryByPriceBetweenBytime = async (req, res) => {
+  try {
+    const greaterThan = req.body.greater;
+    const lessThan = req.body.less;
+    const ranking = req.body.ranking;
+    const timefilter = req.body.timefilter;
+    const category = req.body.category;
+
+    //check input
+    if (
+      category.length !== 0 &&
+      greaterThan > 0 &&
+      lessThan > 0 &&
+      ranking.length !== 0 &&
+      timefilter.length !== 0
+    ) {
+      const productInfo = await Product.find({});
+
+      const filterProductArr = productInfo.filter((product) =>
+        category.every((r) => product.category.includes(r))
+      );
+
+      const _result = filterProductArr.filter(
+        (product) =>
+          product.price <= Number(lessThan) &&
+          product.price >= Number(greaterThan)
+      );
+
+      // sort price
+      const result =
+        ranking === "asc"
+          ? _result.sort((a, b) => a.price - b.price)
+          : _result.sort((a, b) => b.price - a.price);
+
+      // sort time
+      const finalResult =
+        timefilter === "lastest"
+          ? result.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+          : result.sort(
+              (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+            );
+
+      return finalResult.length > 0
+        ? res.status(200).json({
+            status: `Product found ${result.length} items`,
+            result: finalResult,
+          })
+        : res.status(200).json({ status: "Product not found" });
+    } else {
+      res.status(501).json({ status: "Input are incorrect" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Fail to get request", err: err });
   }
 };
