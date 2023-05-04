@@ -9,10 +9,14 @@ export const createProduct = async (req, res) => {
   };
 
   const insertProduct = new Product(product);
-  await insertProduct.save().then((res) => console.log("result", res));
+  await insertProduct
+    .save()
+    .then((response) =>
+      res.status(200).json({ status: "success", databaseInfo: insertProduct })
+    );
 };
 
-export const findProduct = async (req, res) => {
+export const findProductAndDisplayNamePriceCategory = async (req, res) => {
   try {
     const productId = req.body.productId;
     if (productId.length > 0) {
@@ -41,7 +45,11 @@ export const findProduct = async (req, res) => {
 export const fetchProduct = async (req, res) => {
   try {
     const productInfo = await Product.find({});
-    res.status(200).json({ status: "success", productInfo: productInfo });
+    res.status(200).json({
+      status: "success",
+      itemsCount: productInfo.length,
+      productInfo: productInfo,
+    });
   } catch (err) {
     res.status(500).json({ status: "Error to fetch product", err: err });
   }
@@ -197,13 +205,28 @@ export const filterProductName = async (req, res) => {
 };
 
 export const deleteProduct = async (req, res) => {
-  const condition = { _id: req.body.productId };
-
-  const productInfo = await Product.deleteOne(condition);
-  if (productInfo) {
-    return res.status(200).json({ status: "success" });
-  } else {
-    return res.status(500).json({ status: "error to delete product" });
+  try {
+    const condition = { _id: req.body.productId };
+    if (condition) {
+      const productInfo = await Product.deleteOne(condition);
+      // console.log("productInfo",productInfo);
+      if (productInfo) {
+        return res
+          .status(200)
+          .json({
+            status:
+              productInfo.deletedCount !== 0
+                ? "The product is deleted successfully"
+                : "No product to delete",
+          });
+      } else {
+        return res.status(500).json({ status: "error to delete product" });
+      }
+    } else {
+      res.status(500).json({ status: "Please enter correct product ID" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Fail to get request", err: err });
   }
 };
 
@@ -246,21 +269,28 @@ export const findOneUpdatePrice = async (req, res) => {
 };
 
 export const findOneUpdateAddCategory = async (req, res) => {
-  const condition = { _id: req.body.productId };
-  const update = { $push: { category: req.body.category } };
-  const options = { lean: "update success", returnDocument: "after" };
-
-  const productInfo = await Product.findByIdAndUpdate(
-    condition,
-    update,
-    options
-  );
-  if (productInfo) {
-    return res
-      .status(200)
-      .json({ status: "success", productInfo: productInfo });
-  } else {
-    return res.status(500).json({ status: "error to update product" });
+  try {
+    const condition = { _id: req.body.productId };
+    const update = { $push: { category: req.body.category } };
+    const options = { lean: "update success", returnDocument: "after" };
+    try {
+      const productInfo = await Product.findByIdAndUpdate(
+        condition,
+        update,
+        options
+      );
+      if (productInfo) {
+        return res
+          .status(200)
+          .json({ status: "success", productInfo: productInfo });
+      } else {
+        return res.status(502).json({ status: "error to update category" });
+      }
+    } catch (err) {
+      res.status(501).json({ status: "error to update category" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Fail to get request" });
   }
 };
 
