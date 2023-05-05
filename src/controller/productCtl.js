@@ -1,19 +1,23 @@
 import Product from "../model/Product.js";
 
 export const createProduct = async (req, res) => {
-  const product = {
-    name: req.body.name,
-    price: req.body.price,
-    category: req.body.category,
-    pictureUrl: req.body.pictureUrl,
-  };
+  try {
+    const product = {
+      name: req.body.name,
+      price: req.body.price,
+      category: req.body.category,
+      pictureUrl: req.body.pictureUrl,
+    };
 
-  const insertProduct = new Product(product);
-  await insertProduct
-    .save()
-    .then((response) =>
-      res.status(200).json({ status: "success", databaseInfo: insertProduct })
-    );
+    const insertProduct = new Product(product);
+    await insertProduct
+      .save()
+      .then((response) =>
+        res.status(200).json({ status: "success", databaseInfo: insertProduct })
+      );
+  } catch (err) {
+    res.status(500).json({ status: "Fail to create product" });
+  }
 };
 
 export const findProductAndDisplayNamePriceCategory = async (req, res) => {
@@ -38,7 +42,7 @@ export const findProductAndDisplayNamePriceCategory = async (req, res) => {
         .json({ message: "please enter correct product id" });
     }
   } catch (err) {
-    return res.status(500).json({ message: "Sorry, can't get request" });
+    return res.status(500).json({ message: "Product not found" });
   }
 };
 
@@ -82,7 +86,7 @@ export const updateProduct = async (req, res) => {
       res.status(500).json({ status: "Fail to update product" });
     }
   } catch (err) {
-    res.status(500).json({ status: "Fail to get request", err: err });
+    res.status(500).json({ status: "Product not found", err: err });
   }
 };
 
@@ -109,42 +113,50 @@ export const updateManyProduct = async (req, res) => {
       res.status(500).json({ status: "Input in not correct" });
     }
   } catch (err) {
-    res.status(500).json({ status: "Fail to get request", err: err });
+    res.status(500).json({ status: "Product not found", err: err });
   }
 };
 
 export const updateProductPriceDiscount = async (req, res) => {
-  const productId = req.body.productId;
-  const price = req.body.price;
-  const productInfo = await Product.updateOne({
-    _id: productId,
-    $inc: { price: price },
-  });
+  try {
+    const productId = req.body.productId;
+    const price = req.body.price;
+    const productInfo = await Product.updateOne({
+      _id: productId,
+      $inc: { price: price },
+    });
 
-  if (productInfo) {
-    const r = {
-      status: "success",
-      productId: productInfo,
-    };
-    return res.status(200).json(r);
-  } else {
-    return res.status(500).json({ status: "Fail to update price" });
+    if (productInfo) {
+      const r = {
+        status: "success",
+        productId: productInfo,
+      };
+      return res.status(200).json(r);
+    } else {
+      return res.status(500).json({ status: "Fail to update price" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Product not found" });
   }
 };
 
 export const deleteFieldProduct = async (req, res) => {
-  const condition = { _id: req.body.productId };
-  const update = { $pull: { category: req.body.category } };
-  const productInfo = await Product.updateOne(condition, update);
+  try {
+    const condition = { _id: req.body.productId };
+    const update = { $pull: { category: req.body.category } };
+    const productInfo = await Product.updateOne(condition, update);
 
-  if (productInfo) {
-    const r = {
-      status: "success",
-      productId: productInfo,
-    };
-    return res.status(200).json(r);
-  } else {
-    return res.status(500).json({ status: "Fail to delete category" });
+    if (productInfo) {
+      const r = {
+        status: "success",
+        productId: productInfo,
+      };
+      return res.status(200).json(r);
+    } else {
+      return res.status(500).json({ status: "Fail to delete category" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Product not found" });
   }
 };
 
@@ -165,7 +177,7 @@ export const addCategoryProductField = async (req, res) => {
       return res.status(500).json({ status: "Fail to add category" });
     }
   } catch (err) {
-    res.status(500).json({ status: "Fail to get request", err: err });
+    res.status(500).json({ status: "Product not found", err: err });
   }
 };
 
@@ -183,12 +195,12 @@ export const filterProductPrice = async (req, res) => {
       .gt(greaterThan);
 
     if (productInfo) {
-      return res.status(200).json(productInfo);
+      return res.status(200).json( {itemCount:productInfo.length,result:productInfo.length >0 ? productInfo : "No product"});
     } else {
       return res.status(500).json({ status: "Fail to filter product" });
     }
   } catch (err) {
-    res.status(500).json({ status: "Fail to get request", message: err });
+    res.status(500).json({ status: "Product not found", message: err });
   }
 };
 
@@ -211,14 +223,12 @@ export const deleteProduct = async (req, res) => {
       const productInfo = await Product.deleteOne(condition);
       // console.log("productInfo",productInfo);
       if (productInfo) {
-        return res
-          .status(200)
-          .json({
-            status:
-              productInfo.deletedCount !== 0
-                ? "The product is deleted successfully"
-                : "No product to delete",
-          });
+        return res.status(200).json({
+          status:
+            productInfo.deletedCount !== 0
+              ? "The product is deleted successfully"
+              : "No product to delete",
+        });
       } else {
         return res.status(500).json({ status: "error to delete product" });
       }
@@ -226,45 +236,53 @@ export const deleteProduct = async (req, res) => {
       res.status(500).json({ status: "Please enter correct product ID" });
     }
   } catch (err) {
-    res.status(500).json({ status: "Fail to get request", err: err });
+    res.status(500).json({ status: "Product not found", err: err });
   }
 };
 
 export const findOneUpdateName = async (req, res) => {
-  const condition = { _id: req.body.productId };
-  const update = { name: req.body.name };
-  const options = { new: true };
+  try {
+    const condition = { _id: req.body.productId };
+    const update = { name: req.body.name };
+    const options = { new: true };
 
-  const productInfo = await Product.findByIdAndUpdate(
-    condition,
-    update,
-    options
-  );
-  if (productInfo) {
-    return res
-      .status(200)
-      .json({ status: "success", productInfo: productInfo });
-  } else {
-    return res.status(500).json({ status: "error to update product" });
+    const productInfo = await Product.findByIdAndUpdate(
+      condition,
+      update,
+      options
+    );
+    if (productInfo) {
+      return res
+        .status(200)
+        .json({ status: "success", productInfo: productInfo });
+    } else {
+      return res.status(500).json({ status: "error to update product" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Product not found" });
   }
 };
 
 export const findOneUpdatePrice = async (req, res) => {
-  const condition = { _id: req.body.productId };
-  const update = { price: req.body.price };
-  const options = { returnDocument: "after" };
+  try {
+    const condition = { _id: req.body.productId };
+    const update = { price: req.body.price };
+    const options = { returnDocument: "after" };
 
-  const productInfo = await Product.findByIdAndUpdate(
-    condition,
-    update,
-    options
-  );
-  if (productInfo) {
-    return res
-      .status(200)
-      .json({ status: "success", productInfo: productInfo });
-  } else {
-    return res.status(500).json({ status: "error to update product" });
+    const productInfo = await Product.findByIdAndUpdate(
+      condition,
+      update,
+      options
+    );
+    if (productInfo) {
+      return res
+        .status(200)
+        .json({ status: "success", productInfo: productInfo });
+    } else {
+      return res.status(500).json({ status: "error to update product" });
+    }
+  } catch (err) {
+    res.status(500).json({ status: "Product not found" });
   }
 };
 
