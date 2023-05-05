@@ -9,4 +9,6 @@ const config = {
     uri:'mongodb+srv://dewworkmotion:Cj39kyvc@testdatabase.demhpra.mongodb.net/test'
   }
 };
+
+44
 export default config;
